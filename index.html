@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>英打遊戲開發歷程</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #172033;
+            font-family: Arial, "Noto Sans TC", sans-serif;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 50px 24px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .description {
+            text-align: center;
+            color: #5c6577;
+            margin-bottom: 35px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            min-height: 230px;
+
+            display: flex;
+            flex-direction: column;
+
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .card p {
+            flex: 1;
+            line-height: 1.7;
+            color: #5c6577;
+        }
+
+        .card a {
+            display: block;
+            padding: 12px 16px;
+
+            text-align: center;
+            text-decoration: none;
+
+            color: white;
+            background: #172033;
+
+            border-radius: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main>
+
+    <h1>英打遊戲開發歷程</h1>
+
+    <p class="description">
+        從版本一開始，逐步完成英打遊戲。
+    </p>
+
+    <section class="cards">
+
+        <!-- 版本一 -->
+        <article class="card">
+            <h2>版本一</h2>
+
+            <p>
+                第一版英打遊戲，包含標題與開始按鈕。
+            </p>
+
+            <!--https://u11517003-cmd.github.io/typing-v1/-->
+            <a href="https://u11517003-cmd.github.io/typing-v1/">
+                開啟版本一
+            </a>
+        </article>
+
+
+        <!-- 版本二 -->
+        <article class="card">
+            <h2>版本二</h2>
+
+            <p>
+                加入英文鍵盤圖片與開始時的雙嗶聲。
+            </p>
+
+            <!--https://u11517003-cmd.github.io/typing-v2/-->
+            <a href="https://u11517003-cmd.github.io/typing-v2//">
+                開啟版本二
+            </a>
+        </article>
+
+
+        <!-- 版本三 -->
+        <article class="card">
+            <h2>版本三</h2>
+
+            <p>
+                ASDF 左手英打練習，目前即將推出。
+            </p>
+
+            <a href="v3/index.html">
+                開啟版本三
+            </a>
+        </article>
+
+
+        <!-- 版本四 -->
+        <article class="card">
+            <h2>版本四</h2>
+
+            <p>
+                十鍵掉落字母遊戲。
+            </p>
+
+            <a href="v4/index.html">
+                開啟版本四
+            </a>
+        </article>
+
+    </section>
+
+</main>
+
+</body>
+</html>

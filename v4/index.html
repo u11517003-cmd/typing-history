@@ -1,0 +1,607 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>英打遊戲版本四</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #eef2f7;
+            color: #172033;
+            font-family: Arial, "Noto Sans TC", sans-serif;
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .controls {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        button {
+            padding: 9px 15px;
+        }
+
+        label {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #game {
+            height: 520px;
+            position: relative;
+            overflow: hidden;
+
+            border: 2px solid #aab2c0;
+            border-radius: 14px;
+
+            background: linear-gradient(
+                white,
+                #f5f7fb
+            );
+        }
+
+        #letter {
+            position: absolute;
+            top: 0;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            font-size: 58px;
+            font-weight: 800;
+
+            display: none;
+
+            user-select: none;
+        }
+
+        .hud {
+            display: flex;
+            gap: 24px;
+            margin: 10px 0;
+
+            font-size: 18px;
+        }
+
+        .hint {
+            color: #5d6675;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+<main>
+
+<div class="panel">
+
+    <h1>英打遊戲版本四｜十鍵掉落字母</h1>
+
+
+    <div class="controls">
+
+        <label>
+            每字母時間
+
+            <input
+                id="speed"
+                type="range"
+                min="3"
+                max="14"
+                value="8"
+                step="1"
+            >
+
+            <span id="speedValue">8</span> 秒
+        </label>
+
+
+        <label>
+            <input id="accel" type="checkbox">
+
+            每答對三題加速一秒
+        </label>
+
+
+        <button id="start">
+            開始
+        </button>
+
+        <button id="pause" disabled>
+            暫停
+        </button>
+
+        <button id="resume" disabled>
+            繼續
+        </button>
+
+        <button id="restart">
+            重新開始
+        </button>
+
+    </div>
+
+
+    <p class="hint">
+        請切換英文輸入。
+        使用 A、S、D、F、G、H、J、K、L、;。
+    </p>
+
+
+    <div class="hud">
+
+        <span>
+            題目：
+            <b id="round">0</b>/10
+        </span>
+
+        <span>
+            得分：
+            <b id="score">0</b>
+        </span>
+
+        <span>
+            落地：
+            <b id="miss">0</b>
+        </span>
+
+        <span>
+            目前速度：
+            <b id="currentSpeed">8</b> 秒
+        </span>
+
+    </div>
+
+
+    <div id="game">
+
+        <div id="letter"></div>
+
+    </div>
+
+
+    <a href="../index.html">
+        回到開發歷程首頁
+    </a>
+
+</div>
+
+</main>
+
+
+<script>
+
+const characters = [
+    "A",
+    "S",
+    "D",
+    "F",
+    "G",
+    "H",
+    "J",
+    "K",
+    "L",
+    ";"
+];
+
+
+const speed = document.getElementById("speed");
+const speedValue = document.getElementById("speedValue");
+
+const accel = document.getElementById("accel");
+
+const letter = document.getElementById("letter");
+const game = document.getElementById("game");
+
+const roundElement = document.getElementById("round");
+const scoreElement = document.getElementById("score");
+const missElement = document.getElementById("miss");
+const currentSpeedElement =
+    document.getElementById("currentSpeed");
+
+
+let baseTime = 8;
+
+let currentTime = 8;
+
+let round = 0;
+
+let score = 0;
+
+let miss = 0;
+
+let currentCharacter = "";
+
+let running = false;
+
+let paused = false;
+
+let startTime = 0;
+
+let elapsed = 0;
+
+let animationFrame = null;
+
+
+
+// 修改速度滑桿
+speed.addEventListener("input", function () {
+
+    speedValue.textContent = speed.value;
+
+    if (!running) {
+
+        currentTime = Number(speed.value);
+
+        currentSpeedElement.textContent =
+            currentTime;
+    }
+});
+
+
+
+// 顯示下一個字母
+function showNextCharacter() {
+
+    const index =
+        Math.floor(
+            Math.random() * characters.length
+        );
+
+    currentCharacter = characters[index];
+
+    letter.textContent = currentCharacter;
+
+    letter.style.display = "block";
+
+    letter.style.top = "0px";
+
+
+    elapsed = 0;
+
+    startTime = performance.now();
+
+    currentSpeedElement.textContent =
+        currentTime;
+
+
+    animate();
+}
+
+
+
+// 動畫
+function animate(now = performance.now()) {
+
+    if (!running || paused) {
+        return;
+    }
+
+
+    elapsed = now - startTime;
+
+
+    const ratio =
+        Math.min(
+            1,
+            elapsed / (currentTime * 1000)
+        );
+
+
+    const maxTop =
+        game.clientHeight - 80;
+
+
+    letter.style.top =
+        (maxTop * ratio) + "px";
+
+
+    // 到達底部
+    if (ratio >= 1) {
+
+        miss++;
+
+        missElement.textContent = miss;
+
+        nextRound();
+
+        return;
+    }
+
+
+    animationFrame =
+        requestAnimationFrame(animate);
+}
+
+
+
+// 下一題
+function nextRound() {
+
+    round++;
+
+    roundElement.textContent = round;
+
+
+    // 十題完成
+    if (round >= 10) {
+
+        endGame();
+
+        return;
+    }
+
+
+    // 每答對三題加速一秒
+    if (
+        accel.checked &&
+        score > 0 &&
+        score % 3 === 0
+    ) {
+
+        currentTime =
+            Math.max(
+                3,
+                currentTime - 1
+            );
+    }
+
+
+    showNextCharacter();
+}
+
+
+
+// 結束
+function endGame() {
+
+    running = false;
+
+    cancelAnimationFrame(animationFrame);
+
+    letter.style.display = "none";
+
+    alert(
+        "本回合結束！\n" +
+        "得分：" + score + "\n" +
+        "落地：" + miss
+    );
+}
+
+
+
+// 重設
+function resetGame() {
+
+    cancelAnimationFrame(animationFrame);
+
+    round = 0;
+
+    score = 0;
+
+    miss = 0;
+
+    currentTime =
+        Number(speed.value);
+
+    running = false;
+
+    paused = false;
+
+
+    roundElement.textContent = 0;
+
+    scoreElement.textContent = 0;
+
+    missElement.textContent = 0;
+
+    currentSpeedElement.textContent =
+        currentTime;
+
+    letter.style.display = "none";
+
+
+    document.getElementById("pause").disabled =
+        true;
+
+    document.getElementById("resume").disabled =
+        true;
+}
+
+
+
+// 開始
+function startGame() {
+
+    resetGame();
+
+    running = true;
+
+    document.getElementById("pause").disabled =
+        false;
+
+    showNextCharacter();
+}
+
+
+
+// 暫停
+function pauseGame() {
+
+    if (!running || paused) {
+        return;
+    }
+
+    paused = true;
+
+    elapsed =
+        performance.now() - startTime;
+
+    cancelAnimationFrame(animationFrame);
+
+
+    document.getElementById("pause").disabled =
+        true;
+
+    document.getElementById("resume").disabled =
+        false;
+}
+
+
+
+// 繼續
+function resumeGame() {
+
+    if (!running || !paused) {
+        return;
+    }
+
+    paused = false;
+
+    startTime =
+        performance.now() - elapsed;
+
+
+    document.getElementById("pause").disabled =
+        false;
+
+    document.getElementById("resume").disabled =
+        true;
+
+
+    animate();
+}
+
+
+
+// 按鈕
+document.getElementById("start")
+    .addEventListener(
+        "click",
+        startGame
+    );
+
+
+document.getElementById("restart")
+    .addEventListener(
+        "click",
+        startGame
+    );
+
+
+document.getElementById("pause")
+    .addEventListener(
+        "click",
+        pauseGame
+    );
+
+
+document.getElementById("resume")
+    .addEventListener(
+        "click",
+        resumeGame
+    );
+
+
+
+// 鍵盤輸入
+window.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (!running || paused) {
+            return;
+        }
+
+
+        // 長按不能連續計分
+        if (event.repeat) {
+            return;
+        }
+
+
+        const pressed =
+            event.key.toUpperCase();
+
+
+        if (
+            !characters.includes(pressed)
+        ) {
+            return;
+        }
+
+
+        // 按對
+        if (
+            pressed === currentCharacter
+        ) {
+
+            score++;
+
+            scoreElement.textContent =
+                score;
+
+
+            cancelAnimationFrame(
+                animationFrame
+            );
+
+
+            nextRound();
+        }
+
+        // 按錯：
+        // 不消除、不加分
+    }
+);
+
+
+
+// 離開視窗自動暫停
+window.addEventListener(
+    "blur",
+    pauseGame
+);
+
+
+
+// 初始設定
+speedValue.textContent =
+    speed.value;
+
+resetGame();
+
+</script>
+
+</body>
+</html>
+

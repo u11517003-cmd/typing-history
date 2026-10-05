@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>英打遊戲版本三</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f4f6fa;
+            color: #172033;
+            font-family: Arial, "Noto Sans TC", sans-serif;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 35px 20px;
+            text-align: center;
+        }
+
+        .game {
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+        }
+
+        #target {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px;
+        }
+
+        .score {
+            font-size: 24px;
+        }
+
+        .keyboard {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .key {
+            width: 80px;
+            height: 65px;
+
+            display: grid;
+            place-items: center;
+
+            border: 2px solid #9aa3b2;
+            border-radius: 12px;
+
+            font-size: 28px;
+            background: white;
+        }
+
+        .key.active {
+            background: #ffdddd;
+            border-color: #d33;
+            box-shadow: 0 0 0 4px rgba(255, 80, 80, 0.2);
+        }
+
+        button {
+            padding: 10px 18px;
+            margin: 4px;
+            font-size: 16px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<main>
+
+    <div class="game">
+
+        <h1>英打遊戲版本三</h1>
+
+        <p>
+            按開始後，使用實體鍵盤輸入 A、S、D、F。
+        </p>
+
+        <div id="target">—</div>
+
+        <div class="score">
+            分數：
+            <span id="score">0</span>
+        </div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div>
+            <button id="start">開始</button>
+            <button id="stop">停止</button>
+            <button id="restart">重新開始</button>
+        </div>
+
+        <a class="back" href="../index.html">
+            回到開發歷程首頁
+        </a>
+
+    </div>
+
+</main>
+
+<script>
+    const letters = ["A", "S", "D", "F"];
+
+    const target = document.getElementById("target");
+    const scoreElement = document.getElementById("score");
+    const keyboard = document.getElementById("keyboard");
+
+    let currentLetter = "";
+    let score = 0;
+    let running = false;
+
+
+    // 建立 A、S、D、F 四個按鍵
+    letters.forEach(function (letter) {
+
+        const key = document.createElement("div");
+
+        key.className = "key";
+        key.dataset.key = letter;
+        key.textContent = letter;
+
+        keyboard.appendChild(key);
+    });
+
+
+    // 顯示下一題
+    function nextQuestion() {
+
+        const randomIndex =
+            Math.floor(Math.random() * letters.length);
+
+        currentLetter = letters[randomIndex];
+
+        target.textContent = currentLetter;
+
+
+        // 讓目前要按的按鍵亮起
+        document.querySelectorAll(".key").forEach(function (key) {
+
+            key.classList.toggle(
+                "active",
+                key.dataset.key === currentLetter
+            );
+
+        });
+    }
+
+
+    // 重新開始
+    function resetGame() {
+
+        score = 0;
+
+        scoreElement.textContent = score;
+
+        nextQuestion();
+    }
+
+
+    // 開始
+    document.getElementById("start").addEventListener("click", function () {
+
+        running = true;
+
+        resetGame();
+    });
+
+
+    // 重新開始
+    document.getElementById("restart").addEventListener("click", function () {
+
+        running = true;
+
+        resetGame();
+    });
+
+
+    // 停止
+    document.getElementById("stop").addEventListener("click", function () {
+
+        running = false;
+
+        target.textContent = "—";
+
+        document.querySelectorAll(".key").forEach(function (key) {
+            key.classList.remove("active");
+        });
+    });
+
+
+    // 實體鍵盤
+    window.addEventListener("keydown", function (event) {
+
+        // 尚未開始就不處理
+        if (!running) {
+            return;
+        }
+
+        // 長按不重複計分
+        if (event.repeat) {
+            return;
+        }
+
+        const pressedKey = event.key.toUpperCase();
+
+
+        // 不是 A/S/D/F 就忽略
+        if (!letters.includes(pressedKey)) {
+            return;
+        }
+
+
+        // 按對
+        if (pressedKey === currentLetter) {
+
+            score++;
+
+            scoreElement.textContent = score;
+
+            nextQuestion();
+        }
+
+        // 按錯：
+        // 不加分，也不換題
+    });
+</script>
+
+</body>
+</html>
+
