@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeLexicon - 英文打字與單字練習場</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: rgba(30, 41, 59, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.1);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --error: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --key-bg: #334155;
+      --key-active: #6366f1;
+      --key-next: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+    }
+
+    .glass-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .screen.active {
+      display: flex !important;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #818cf8, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin-bottom: 32px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      box-shadow: none;
+      margin-top: 15px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: none;
+    }
+
+    .category-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .best-score-badge {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      color: #fde047;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    .category-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-card:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--primary);
+      transform: translateY(-3px);
+    }
+
+    .category-icon { font-size: 2rem; }
+    .category-name { font-size: 1.1rem; font-weight: 700; }
+    .category-count { font-size: 0.8rem; color: var(--text-muted); }
+
+    .game-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar-container {
+      flex-grow: 1;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      margin: 0 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease;
+    }
+
+    .word-display-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .word-letters {
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-bottom: 12px;
+      font-family: monospace;
+    }
+
+    .letter { color: rgba(255, 255, 255, 0.3); }
+    .letter.typed { color: var(--accent); }
+    .letter.current { color: var(--text-main); border-bottom: 4px solid var(--primary); }
+    .letter.error { color: var(--error); }
+
+    .word-info {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pos-tag {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .phonetic { color: var(--text-muted); }
+    .chinese-hint {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      filter: blur(5px);
+      transition: filter 0.3s ease;
+    }
+    .chinese-hint.revealed { filter: blur(0); color: var(--text-main); }
+
+    .keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 650px;
+      align-items: center;
+      margin: 0 auto;
+    }
+
+    .keyboard-row { 
+      display: flex; 
+      gap: 6px; 
+      justify-content: center;
+    }
+
+    #row-1 {
+      transform: translateX(0);
+    }
+
+    #row-2 {
+      transform: translateX(0);
+    }
+
+    #row-3 {
+      transform: translateX(-22px);
+    }
+
+    .key {
+      background: var(--key-bg);
+      color: var(--text-main);
+      width: 44px;
+      height: 48px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .key.active { background: var(--key-active); }
+    .key.next { background: var(--key-next); color: white; }
+
+    .countdown-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .countdown-number {
+      font-size: 8rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      margin: 24px 0;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .stat-value { font-size: 2rem; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+    .word-review-list {
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+    }
+
+    .review-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container glass-card">
+    <!-- 1. 歡迎首頁 -->
+    <div id="landing-screen" class="screen active">
+      <h1>TypeLexicon 英文打字與單字練習場</h1>
+      <p class="subtitle">邊練習英文鍵盤盲打邊學習常用單字！精準統計你的反應速度</p>
+      <button id="start-btn" class="btn">🚀 開始練習</button>
+    </div>
+
+    <!-- 2. 主題選擇頁 -->
+    <div id="category-screen" class="screen">
+      <div class="category-header">
+        <h2 style="color: var(--text-main);">選擇練習主題</h2>
+        <div id="best-score" class="best-score-badge">⚡ 本次最佳: -- ms/字</div>
+      </div>
+      
+      <div class="category-grid">
+        <div class="category-card" onclick="startCountdown('food')">
+          <div class="category-icon">🍚</div>
+          <div class="category-name">食</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('clothing')">
+          <div class="category-icon">👕</div>
+          <div class="category-name">衣</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('housing')">
+          <div class="category-icon">🏠</div>
+          <div class="category-name">住</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('transport')">
+          <div class="category-icon">🚗</div>
+          <div class="category-name">行</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('education')">
+          <div class="category-icon">🎓</div>
+          <div class="category-name">育</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('entertainment')">
+          <div class="category-icon">🎮</div>
+          <div class="category-name">樂</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('verbs')">
+          <div class="category-icon">⚡</div>
+          <div class="category-name">常用動詞</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('adjectives')">
+          <div class="category-icon">🌟</div>
+          <div class="category-name">形容詞</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+        <div class="category-card" onclick="startCountdown('conjunctions')">
+          <div class="category-icon">🔗</div>
+          <div class="category-name">連接詞與介系詞</div>
+          <div class="category-count">50 個題庫 (隨機抽10字)</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" onclick="switchScreen('landing-screen')">🏠 回到主頁面</button>
+    </div>
+
+    <!-- 3. 遊戲進行頁 -->
+    <div id="game-screen" class="screen">
+      <div class="game-header">
+        <span id="category-label" style="font-weight: bold; color: var(--accent);">主題</span>
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <span id="word-count" style="font-size: 0.9rem; color: var(--text-muted);">1/10</span>
+      </div>
+
+      <div class="word-display-card">
+        <div id="word-letters" class="word-letters"></div>
+        <div class="word-info">
+          <span id="pos-tag" class="pos-tag">n.</span>
+          <span id="phonetic" class="phonetic">/ /</span>
+          <span id="chinese-hint" class="chinese-hint">中文意思</span>
+        </div>
+      </div>
+
+      <div class="keyboard" id="keyboard">
+        <div class="keyboard-row" id="row-1"></div>
+        <div class="keyboard-row" id="row-2"></div>
+        <div class="keyboard-row" id="row-3"></div>
+      </div>
+    </div>
+
+    <!-- 4. 結算頁 -->
+    <div id="results-screen" class="screen">
+      <h1>本輪練習完成！ 🎉</h1>
+      <p class="subtitle" id="new-record-badge" style="display:none; color: #fde047; font-weight: bold;">⚡ 恭喜刷新本次最佳反應時間！</p>
+      
+      <div class="results-grid">
+        <div class="stat-card">
+          <div class="stat-label">平均字母反應時間</div>
+          <div id="stat-avg-time" class="stat-value">0 ms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">打字正確率</div>
+          <div id="stat-accuracy" class="stat-value">100%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">本輪通關時長</div>
+          <div id="stat-total-time" class="stat-value">0s</div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 12px; width: 100%; text-align: left;">本輪單字總複習</h3>
+      <div class="word-review-list" id="review-list"></div>
+
+      <div style="display: flex; gap: 12px;">
+        <button class="btn" onclick="restartSameCategory()">🔄 再玩一輪</button>
+        <button class="btn btn-secondary" onclick="switchScreen('category-screen')">選其他主題</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="countdown-overlay" class="countdown-overlay">
+    <div id="countdown-number" class="countdown-number">3</div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function playSound(type) {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(160, now);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'wordSuccess') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        }
+      } catch (err) {
+        console.log("Audio not allowed yet");
+      }
+    }
+
+    const VOCABULARY = {
+      food: [
+        { w: "apple", p: "n.", ph: "/ˈæp.əl/", c: "蘋果" },
+        { w: "banana", p: "n.", ph: "/bəˈnæn.ə/", c: "香蕉" },
+        { w: "bread", p: "n.", ph: "/bred/", c: "麵包" },
+        { w: "butter", p: "n.", ph: "/ˈbʌt.ər/", c: "奶油" },
+        { w: "cheese", p: "n.", ph: "/tʃiːz/", c: "起司" },
+        { w: "chicken", p: "n.", ph: "/ˈtʃɪk.ɪn/", c: "雞肉" },
+        { w: "coffee", p: "n.", ph: "/ˈkɒf.i/", c: "咖啡" },
+        { w: "cookie", p: "n.", ph: "/ˈkʊk.i/", c: "餅乾" },
+        { w: "dinner", p: "n.", ph: "/ˈdɪn.ər/", c: "晚餐" },
+        { w: "sandwich", p: "n.", ph: "/ˈsæn.wɪdʒ/", c: "三明治" },
+        { w: "breakfast", p: "n.", ph: "/ˈbrek.fəst/", c: "早餐" },
+        { w: "chocolate", p: "n.", ph: "/ˈtʃɒk.lət/", c: "巧克力" },
+        { w: "delicious", p: "adj.", ph: "/dɪˈlɪʃ.əs/", c: "美味的" },
+        { w: "hamburger", p: "n.", ph: "/ˈhæmˌbɜː.ɡər/", c: "漢堡" },
+        { w: "spaghetti", p: "n.", ph: "/spəˈɡet.i/", c: "義大利麵" },
+        { w: "vegetable", p: "n.", ph: "/ˈvedʒ.tə.bəl/", c: "蔬菜" },
+        { w: "strawberry", p: "n.", ph: "/ˈstrɔː.bər.i/", c: "草莓" },
+        { w: "pineapple", p: "n.", ph: "/ˈpaɪnˌæp.əl/", c: "鳳梨" },
+        { w: "watermelon", p: "n.", ph: "/ˈwɔː.təˌmel.ən/", c: "西瓜" },
+        { w: "restaurant", p: "n.", ph: "/ˈres.trɒnt/", c: "餐廳" },
+        { w: "pancake", p: "n.", ph: "/ˈpæn.keɪk/", c: "鬆餅" },
+        { w: "sausage", p: "n.", ph: "/ˈsɒs.ɪdʒ/", c: "香腸" },
+        { w: "seafood", p: "n.", ph: "/ˈsiː.fuːd/", c: "海鮮" },
+        { w: "popcorn", p: "n.", ph: "/ˈpɒp.kɔːn/", c: "爆米花" },
+        { w: "biscuit", p: "n.", ph: "/ˈbɪs.kɪt/", c: "餅乾" },
+        { w: "noodle", p: "n.", ph: "/ˈnuː.dəl/", c: "麵條" },
+        { w: "dessert", p: "n.", ph: "/dɪˈzɜːt/", c: "甜點" },
+        { w: "cupcake", p: "n.", ph: "/ˈkʌp.keɪk/", c: "杯子蛋糕" },
+        { w: "pork", p: "n.", ph: "/pɔːk/", c: "豬肉" },
+        { w: "beef", p: "n.", ph: "/biːf/", c: "牛肉" },
+        { w: "mutton", p: "n.", ph: "/ˈmʌt.ən/", c: "羊肉" },
+        { w: "salad", p: "n.", ph: "/ˈsæl.əd/", c: "沙拉" },
+        { w: "soup", p: "n.", ph: "/suːp/", c: "湯" },
+        { w: "juice", p: "n.", ph: "/dʒuːs/", c: "果汁" },
+        { w: "milk", p: "n.", ph: "/mɪlk/", c: "牛奶" },
+        { w: "yogurt", p: "n.", ph: "/ˈjɒɡ.ət/", c: "優格" },
+        { w: "pizza", p: "n.", ph: "/ˈpiːt.sə/", c: "披薩" },
+        { w: "honey", p: "n.", ph: "/ˈhʌn.i/", c: "蜂蜜" },
+        { w: "sugar", p: "n.", ph: "/ˈʃʊɡ.ər/", c: "糖" },
+        { w: "salt", p: "n.", ph: "/sɒlt/", c: "鹽" },
+        { w: "pepper", p: "n.", ph: "/ˈpep.ər/", c: "胡椒" },
+        { w: "garlic", p: "n.", ph: "/ˈɡɑː.lɪk/", c: "大蒜" },
+        { w: "onion", p: "n.", ph: "/ˈʌn.jən/", c: "洋蔥" },
+        { w: "potato", p: "n.", ph: "/pəˈteɪ.təʊ/", c: "馬鈴薯" },
+        { w: "tomato", p: "n.", ph: "/təˈmɑː.təʊ/", c: "番茄" },
+        { w: "carrot", p: "n.", ph: "/ˈkær.ət/", c: "胡蘿蔔" },
+        { w: "cabbage", p: "n.", ph: "/ˈkæb.ɪdʒ/", c: "高麗菜" },
+        { w: "walnut", p: "n.", ph: "/ˈwɔːl.nʌt/", c: "核桃" },
+        { w: "almond", p: "n.", ph: "/ˈɑː.mənd/", c: "杏仁" },
+        { w: "peach", p: "n.", ph: "/piːtʃ/", c: "水蜜桃" }
+      ],
+      clothing: [
+        { w: "jacket", p: "n.", ph: "/ˈdʒæk.ɪt/", c: "夾克" },
+        { w: "shirt", p: "n.", ph: "/ʃɜːt/", c: "襯衫" },
+        { w: "pants", p: "n.", ph: "/pænts/", c: "褲子" },
+        { w: "shoes", p: "n.", ph: "/ʃuːz/", c: "鞋子" },
+        { w: "socks", p: "n.", ph: "/sɒks/", c: "襪子" },
+        { w: "dress", p: "n.", ph: "/dres/", c: "連身裙" },
+        { w: "skirt", p: "n.", ph: "/skɜːt/", c: "短裙" },
+        { w: "coat", p: "n.", ph: "/kəʊt/", c: "大衣" },
+        { w: "gloves", p: "n.", ph: "/ɡlʌvz/", c: "手套" },
+        { w: "sweater", p: "n.", ph: "/ˈswet.ər/", c: "毛衣" },
+        { w: "trousers", p: "n.", ph: "/ˈtraʊ.zəz/", c: "長褲" },
+        { w: "sneakers", p: "n.", ph: "/ˈsniː.kəz/", c: "運動鞋" },
+        { w: "raincoat", p: "n.", ph: "/ˈreɪn.kəʊt/", c: "雨衣" },
+        { w: "umbrella", p: "n.", ph: "/ʌmˈbrel.ə/", c: "雨傘" },
+        { w: "uniform", p: "n.", ph: "/ˈjuː.nɪ.fɔːm/", c: "制服" },
+        { w: "pajamas", p: "n.", ph: "/pəˈdʒɑː.məz/", c: "睡衣" },
+        { w: "tshirt", p: "n.", ph: "/ˈtiː.ʃɜːt/", c: "T恤" },
+        { w: "shorts", p: "n.", ph: "/ʃɔːts/", c: "短褲" },
+        { w: "jeans", p: "n.", ph: "/dʒiːnz/", c: "牛仔褲" },
+        { w: "boots", p: "n.", ph: "/buːts/", c: "靴子" },
+        { w: "sandals", p: "n.", ph: "/ˈsæn.dəlz/", c: "涼鞋" },
+        { w: "slippers", p: "n.", ph: "/ˈslɪp.əz/", c: "拖鞋" },
+        { w: "scarf", p: "n.", ph: "/skɑːf/", c: "圍巾" },
+        { w: "belt", p: "n.", ph: "/belt/", c: "皮帶" },
+        { w: "tie", p: "n.", ph: "/taɪ/", c: "領帶" },
+        { w: "cap", p: "n.", ph: "/kæp/", c: "鴨舌帽" },
+        { w: "hat", p: "n.", ph: "/hæt/", c: "帽子" },
+        { w: "suit", p: "n.", ph: "/suːt/", c: "西裝" },
+        { w: "vest", p: "n.", ph: "/vest/", c: "背心" },
+        { w: "overcoat", p: "n.", ph: "/ˈəʊ.və.kəʊt/", c: "外套" },
+        { w: "hoodie", p: "n.", ph: "/ˈhʊd.i/", c: "帽T" },
+        { w: "buttons", p: "n.", ph: "/ˈbʌt.ənz/", c: "鈕扣" },
+        { w: "zipper", p: "n.", ph: "/ˈzɪp.ər/", c: "拉鍊" },
+        { w: "pocket", p: "n.", ph: "/ˈpɒk.ɪt/", c: "口袋" },
+        { w: "sleeve", p: "n.", ph: "/sliːv/", c: "袖子" },
+        { w: "collar", p: "n.", ph: "/ˈkɒl.ər/", c: "衣領" },
+        { w: "necklace", p: "n.", ph: "/ˈnek.ləs/", c: "項鍊" },
+        { w: "ring", p: "n.", ph: "/rɪŋ/", c: "戒指" },
+        { w: "earrings", p: "n.", ph: "/ˈɪə.rɪŋz/", c: "耳環" },
+        { w: "bracelet", p: "n.", ph: "/ˈbreɪ.slət/", c: "手鍊" },
+        { w: "watch", p: "n.", ph: "/wɒtʃ/", c: "手錶" },
+        { w: "glasses", p: "n.", ph: "/ˈɡlɑː.sɪz/", c: "眼鏡" },
+        { w: "sunglasses", p: "n.", ph: "/ˈsʌnˌɡlɑː.sɪz/", c: "太陽眼鏡" },
+        { w: "handbag", p: "n.", ph: "/ˈhænd.bæɡ/", c: "手提包" },
+        { w: "backpack", p: "n.", ph: "/ˈbæk.pæk/", c: "後背包" },
+        { w: "wallet", p: "n.", ph: "/ˈwɒl.ɪt/", c: "皮夾" },
+        { w: "purse", p: "n.", ph: "/pɜːs/", c: "女用皮包" },
+        { w: "cotton", p: "n.", ph: "/ˈkɒt.ən/", c: "棉" },
+        { w: "leather", p: "n.", ph: "/ˈleð.ər/", c: "皮革" },
+        { w: "silk", p: "n.", ph: "/sɪlk/", c: "絲綢" }
+      ],
+      housing: [
+        { w: "bedroom", p: "n.", ph: "/ˈbed.ruːm/", c: "臥室" },
+        { w: "kitchen", p: "n.", ph: "/ˈkɪtʃ.ən/", c: "廚房" },
+        { w: "bathroom", p: "n.", ph: "/ˈbɑːθ.ruːm/", c: "浴室" },
+        { w: "furniture", p: "n.", ph: "/ˈfɜː.nɪ.tʃər/", c: "家具" },
+        { w: "balcony", p: "n.", ph: "/ˈbæl.kə.ni/", c: "陽台" },
+        { w: "apartment", p: "n.", ph: "/əˈpɑːt.mənt/", c: "公寓" },
+        { w: "refrigerator", p: "n.", ph: "/rɪˈfrɪdʒ.ər.eɪ.tər/", c: "冰箱" },
+        { w: "microwave", p: "n.", ph: "/ˈmaɪ.krə.weɪv/", c: "微波爐" },
+        { w: "livingroom", p: "n.", ph: "/ˈlɪv.ɪŋ.ruːm/", c: "客廳" },
+        { w: "diningroom", p: "n.", ph: "/ˈdaɪ.nɪŋ.ruːm/", c: "餐廳" },
+        { w: "basement", p: "n.", ph: "/ˈbeɪs.mənt/", c: "地下室" },
+        { w: "building", p: "n.", ph: "/ˈbɪl.dɪŋ/", c: "大樓" },
+        { w: "elevator", p: "n.", ph: "/ˈel.ɪ.veɪ.tər/", c: "電梯" },
+        { w: "stairs", p: "n.", ph: "/steəz/", c: "樓梯" },
+        { w: "roof", p: "n.", ph: "/ruːf/", c: "屋頂" },
+        { w: "ceiling", p: "n.", ph: "/ˈsiː.lɪŋ/", c: "天花板" },
+        { w: "window", p: "n.", ph: "/ˈwɪn.dəʊ/", c: "窗戶" },
+        { w: "door", p: "n.", ph: "/dɔːr/", c: "門" },
+        { w: "garden", p: "n.", ph: "/ˈɡɑː.dən/", c: "花園" },
+        { w: "garage", p: "n.", ph: "/ˈɡær.ɑːʒ/", c: "車庫" },
+        { w: "sofa", p: "n.", ph: "/ˈsəʊ.fə/", c: "沙發" },
+        { w: "couch", p: "n.", ph: "/kaʊtʃ/", c: "長沙發" },
+        { w: "armchair", p: "n.", ph: "/ˈɑːm.tʃeər/", c: "單人沙發" },
+        { w: "table", p: "n.", ph: "/ˈteɪ.bəl/", c: "桌子" },
+        { w: "chair", p: "n.", ph: "/tʃeər/", c: "椅子" },
+        { w: "desk", p: "n.", ph: "/desk/", c: "書桌" },
+        { w: "bed", p: "n.", ph: "/bed/", c: "床" },
+        { w: "pillow", p: "n.", ph: "/ˈpɪl.əʊ/", c: "枕頭" },
+        { w: "blanket", p: "n.", ph: "/ˈblæŋ.kɪt/", c: "毯子" },
+        { w: "mattress", p: "n.", ph: "/ˈmæt.rəs/", c: "床墊" },
+        { w: "wardrobe", p: "n.", ph: "/ˈwɔː.drəʊb/", c: "衣櫃" },
+        { w: "closet", p: "n.", ph: "/ˈklɒz.ɪt/", c: "壁櫥" },
+        { w: "bookshelf", p: "n.", ph: "/ˈbʊk.ʃelf/", c: "書架" },
+        { w: "cabinet", p: "n.", ph: "/ˈkæb.ɪ.nət/", c: "櫥櫃" },
+        { w: "mirror", p: "n.", ph: "/ˈmɪr.ər/", c: "鏡子" },
+        { w: "curtain", p: "n.", ph: "/ˈkɜː.tən/", c: "窗簾" },
+        { w: "carpet", p: "n.", ph: "/ˈkɑː.pɪt/", c: "地毯" },
+        { w: "lamp", p: "n.", ph: "/læmp/", c: "燈" },
+        { w: "television", p: "n.", ph: "/ˈtel.ɪ.vɪʒ.ən/", c: "電視" },
+        { w: "computer", p: "n.", ph: "/kəmˈpjuː.tər/", c: "電腦" },
+        { w: "airconditioner", p: "n.", ph: "/ˈeə.kən.dɪʃ.ən.ər/", c: "冷氣機" },
+        { w: "heater", p: "n.", ph: "/ˈhiː.tər/", c: "暖氣機" },
+        { w: "washingmachine", p: "n.", ph: "/ˈwɒʃ.ɪŋ.mə.ʃiːn/", c: "洗衣機" },
+        { w: "vacuum", p: "n.", ph: "/ˈvæk.juːm/", c: "吸塵器" },
+        { w: "toaster", p: "n.", ph: "/ˈtəʊ.stər/", c: "烤麵包機" },
+        { w: "oven", p: "n.", ph: "/ˈʌv.ən/", c: "烤箱" },
+        { w: "blender", p: "n.", ph: "/ˈblen.dər/", c: "果汁機" },
+        { w: "faucet", p: "n.", ph: "/ˈfɔː.sɪt/", c: "水頭" },
+        { w: "sink", p: "n.", ph: "/sɪŋk/", c: "洗手台" },
+        { w: "toilet", p: "n.", ph: "/ˈtɔɪ.lət/", c: "馬桶" }
+      ],
+      transport: [
+        { w: "bicycle", p: "n.", ph: "/ˈbaɪ.sɪ.kəl/", c: "腳踏車" },
+        { w: "airplane", p: "n.", ph: "/ˈeə.pleɪn/", c: "飛機" },
+        { w: "subway", p: "n.", ph: "/ˈsʌb.weɪ/", c: "捷運/地鐵" },
+        { w: "passport", p: "n.", ph: "/ˈpɑːs.pɔːt/", c: "護照" },
+        { w: "luggage", p: "n.", ph: "/ˈlʌɡ.ɪdʒ/", c: "行李" },
+        { w: "station", p: "n.", ph: "/ˈsteɪ.ʃən/", c: "車站" },
+        { w: "bus", p: "n.", ph: "/bʌs/", c: "公車" },
+        { w: "train", p: "n.", ph: "/treɪn/", c: "火車" },
+        { w: "car", p: "n.", ph: "/kɑːr/", c: "汽車" },
+        { w: "taxi", p: "n.", ph: "/ˈtæk.si/", c: "計程車" },
+        { w: "motorcycle", p: "n.", ph: "/ˈməʊ.təˌsaɪ.kəl/", c: "摩托車" },
+        { w: "scooter", p: "n.", ph: "/ˈskuː.tər/", c: "機車/滑板車" },
+        { w: "truck", p: "n.", ph: "/trʌk/", c: "卡車" },
+        { w: "ship", p: "n.", ph: "/ʃɪp/", c: "輪船" },
+        { w: "boat", p: "n.", ph: "/bəʊt/", c: "小船" },
+        { w: "helicopter", p: "n.", ph: "/ˈhel.ɪˌkɒp.tər/", c: "直升機" },
+        { w: "airport", p: "n.", ph: "/ˈeə.pɔːt/", c: "機場" },
+        { w: "platform", p: "n.", ph: "/ˈplæt.fɔːm/", c: "月台" },
+        { w: "ticket", p: "n.", ph: "/ˈtɪk.ɪt/", c: "車票/機票" },
+        { w: "passenger", p: "n.", ph: "/ˈpæs.ən.dʒər/", c: "乘客" },
+        { w: "driver", p: "n.", ph: "/ˈdraɪ.vər/", c: "司機" },
+        { w: "pilot", p: "n.", ph: "/ˈpaɪ.lət/", c: "飛行員" },
+        { w: "captain", p: "n.", ph: "/ˈkæp.tɪn/", c: "船長" },
+        { w: "traffic", p: "n.", ph: "/ˈtræf.ɪk/", c: "交通" },
+        { w: "street", p: "n.", ph: "/striːt/", c: "街道" },
+        { w: "road", p: "n.", ph: "/rəʊd/", c: "道路" },
+        { w: "highway", p: "n.", ph: "/ˈhaɪ.weɪ/", c: "公路" },
+        { w: "bridge", p: "n.", ph: "/brɪdʒ/", c: "橋樑" },
+        { w: "tunnel", p: "n.", ph: "/ˈtʌn.əl/", c: "隧道" },
+        { w: "intersection", p: "n.", ph: "/ˌɪn.təˈsek.ʃən/", c: "十字路口" },
+        { w: "sidewalk", p: "n.", ph: "/ˈsaɪd.wɔːk/", c: "人行道" },
+        { w: "crosswalk", p: "n.", ph: "/ˈkrɒs.wɔːk/", c: "斑馬線" },
+        { w: "parking", p: "n.", ph: "/ˈpɑː.kɪŋ/", c: "停車場" },
+        { w: "gasstation", p: "n.", ph: "/ˈɡæs.steɪ.ʃən/", c: "加油站" },
+        { w: "map", p: "n.", ph: "/mæp/", c: "地圖" },
+        { w: "destination", p: "n.", ph: "/ˌdes.tɪˈneɪ.ʃən/", c: "目的地" },
+        { w: "arrival", p: "n.", ph: "/əˈraɪ.vəl/", c: "到達" },
+        { w: "departure", p: "n.", ph: "/dɪˈpɑː.tʃər/", c: "出發" },
+        { w: "delay", p: "n.", ph: "/dɪˈleɪ/", c: "延誤" },
+        { w: "schedule", p: "n.", ph: "/ˈʃed.juːl/", c: "時刻表" },
+        { w: "seat", p: "n.", ph: "/siːt/", c: "座位" },
+        { w: "belt", p: "n.", ph: "/belt/", c: "安全帶" },
+        { w: "engine", p: "n.", ph: "/ˈen.dʒɪn/", c: "引擎" },
+        { w: "wheel", p: "n.", ph: "/wiːl/", c: "方向盤/車輪" },
+        { w: "speed", p: "n.", ph: "/spiːd/", c: "速度" },
+        { w: "fast", p: "adj.", ph: "/fɑːst/", c: "快速的" },
+        { w: "slow", p: "adj.", ph: "/sləʊ/", c: "緩慢的" },
+        { w: "trip", p: "n.", ph: "/trɪp/", c: "旅程" },
+        { w: "travel", p: "v.", ph: "/ˈtræv.əl/", c: "旅行" },
+        { w: "tourist", p: "n.", ph: "/ˈtʊə.rɪst/", c: "觀光客" }
+      ],
+      education: [
+        { w: "student", p: "n.", ph: "/ˈstjuː.dənt/", c: "學生" },
+        { w: "teacher", p: "n.", ph: "/ˈtiː.tʃər/", c: "老師" },
+        { w: "library", p: "n.", ph: "/ˈlaɪ.brər.i/", c: "圖書館" },
+        { w: "textbook", p: "n.", ph: "/ˈtekst.bʊk/", c: "課本" },
+        { w: "notebook", p: "n.", ph: "/ˈnəʊt.bʊk/", c: "筆記本" },
+        { w: "classroom", p: "n.", ph: "/ˈklɑːs.ruːm/", c: "教室" },
+        { w: "school", p: "n.", ph: "/skuːl/", c: "學校" },
+        { w: "university", p: "n.", ph: "/ˌjuː.nɪˈvɜː.sə.ti/", c: "大學" },
+        { w: "college", p: "n.", ph: "/ˈkɒl.ɪdʒ/", c: "學院" },
+        { w: "professor", p: "n.", ph: "/prəˈfes.ər/", c: "教授" },
+        { w: "principal", p: "n.", ph: "/ˈprɪn.sə.pəl/", c: "校長" },
+        { w: "classmate", p: "n.", ph: "/ˈklɑːs.meɪt/", c: "同班同學" },
+        { w: "subject", p: "n.", ph: "/ˈsʌb.dʒekt/", c: "科目" },
+        { w: "english", p: "n.", ph: "/ˈɪŋ.ɡlɪʃ/", c: "英文" },
+        { w: "chinese", p: "n.", ph: "/tʃaɪˈniːz/", c: "中文" },
+        { w: "math", p: "n.", ph: "/mæθ/", c: "數學" },
+        { w: "science", p: "n.", ph: "/ˈsaɪ.əns/", c: "科學" },
+        { w: "history", p: "n.", ph: "/ˈhɪs.tər.i/", c: "歷史" },
+        { w: "geography", p: "n.", ph: "/dʒiˈɒɡ.rə.fi/", c: "地理" },
+        { w: "art", p: "n.", ph: "/ɑːt/", c: "美術" },
+        { w: "music", p: "n.", ph: "/ˈmjuː.zɪk/", c: "音樂" },
+        { w: "lesson", p: "n.", ph: "/ˈles.ən/", c: "課程" },
+        { w: "course", p: "n.", ph: "/kɔːs/", c: "課程" },
+        { w: "exam", p: "n.", ph: "/ɪɡˈzæm/", c: "考試" },
+        { w: "test", p: "n.", ph: "/test/", c: "測驗" },
+        { w: "quiz", p: "n.", ph: "/kwɪz/", c: "小考" },
+        { w: "homework", p: "n.", ph: "/ˈhəʊm.wɜːk/", c: "功課" },
+        { w: "assignment", p: "n.", ph: "/əˈsaɪn.mənt/", c: "作業" },
+        { w: "grade", p: "n.", ph: "/ɡreɪd/", c: "成績/年級" },
+        { w: "score", p: "n.", ph: "/skɔːr/", c: "分數" },
+        { w: "degree", p: "n.", ph: "/dɪˈɡriː/", c: "學位" },
+        { w: "diploma", p: "n.", ph: "/dɪˈpləʊ.mə/", c: "畢業證書" },
+        { w: "pen", p: "n.", ph: "/pen/", c: "鋼筆/水筆" },
+        { w: "pencil", p: "n.", ph: "/ˈpen.səl/", c: "鉛筆" },
+        { w: "eraser", p: "n.", ph: "/ɪˈreɪ.zər/", c: "橡皮擦" },
+        { w: "ruler", p: "n.", ph: "/ˈruː.lər/", c: "尺" },
+        { w: "scissors", p: "n.", ph: "/ˈsɪz.əz/", c: "剪刀" },
+        { w: "glue", p: "n.", ph: "/ɡluː/", c: "膠水" },
+        { w: "paper", p: "n.", ph: "/ˈpeɪ.pər/", c: "紙" },
+        { w: "dictionary", p: "n.", ph: "/ˈdɪk.ʃən.ər.i/", c: "字典" },
+        { w: "blackboard", p: "n.", ph: "/ˈblæk.bɔːd/", c: "黑板" },
+        { w: "whiteboard", p: "n.", ph: "/ˈwaɪt.bɔːd/", c: "白板" },
+        { w: "chalk", p: "n.", ph: "/tʃɔːk/", c: "粉筆" },
+        { w: "marker", p: "n.", ph: "/ˈmɑː.kər/", c: "馬克筆" },
+        { w: "desk", p: "n.", ph: "/desk/", c: "課桌" },
+        { w: "chair", p: "n.", ph: "/tʃeər/", c: "椅子" },
+        { w: "study", p: "v.", ph: "/ˈstʌd.i/", c: "研讀" },
+        { w: "learn", p: "v.", ph: "/lɜːn/", c: "學習" },
+        { w: "teach", p: "v.", ph: "/tiːtʃ/", c: "教導" },
+        { w: "read", p: "v.", ph: "/riːd/", c: "閱讀" }
+      ],
+      entertainment: [
+        { w: "concert", p: "n.", ph: "/ˈkɒn.sət/", c: "演唱會" },
+        { w: "badminton", p: "n.", ph: "/ˈbæd.mɪn.tən/", c: "羽毛球" },
+        { w: "basketball", p: "n.", ph: "/ˈbɑː.skɪt.bɔːl/", c: "籃球" },
+        { w: "movie", p: "n.", ph: "/ˈmuː.vi/", c: "電影" },
+        { w: "game", p: "n.", ph: "/ɡeɪm/", c: "遊戲" },
+        { w: "music", p: "n.", ph: "/ˈmjuː.zɪk/", c: "音樂" },
+        { w: "song", p: "n.", ph: "/sɒŋ/", c: "歌曲" },
+        { w: "singer", p: "n.", ph: "/ˈsɪŋ.ər/", c: "歌手" },
+        { w: "actor", p: "n.", ph: "/ˈæk.tər/", c: "演員" },
+        { w: "actress", p: "n.", ph: "/ˈæk.trəs/", c: "女演員" },
+        { w: "theater", p: "n.", ph: "/ˈθɪə.tər/", c: "戲院" },
+        { w: "cinema", p: "n.", ph: "/ˈsɪn.ə.mɑː/", c: "電影院" },
+        { w: "film", p: "n.", ph: "/fɪlm/", c: "影片" },
+        { w: "drama", p: "n.", ph: "/ˈdrɑː.mə/", c: "戲劇" },
+        { w: "sports", p: "n.", ph: "/spɔːts/", c: "運動" },
+        { w: "soccer", p: "n.", ph: "/ˈsɒk.ər/", c: "足球" },
+        { w: "football", p: "n.", ph: "/ˈfʊt.bɔːl/", c: "橄欖球/足球" },
+        { w: "baseball", p: "n.", ph: "/ˈbeɪs.bɔːl/", c: "棒球" },
+        { w: "tennis", p: "n.", ph: "/ˈten.ɪs/", c: "網球" },
+        { w: "volleyball", p: "n.", ph: "/ˈvɒl.i.bɔːl/", c: "排球" },
+        { w: "swimming", p: "n.", ph: "/ˈswɪm.ɪŋ/", c: "游泳" },
+        { w: "running", p: "n.", ph: "/ˈrʌn.ɪŋ/", c: "跑步" },
+        { w: "jogging", p: "n.", ph: "/ˈdʒɒɡ.ɪŋ/", c: "慢跑" },
+        { w: "cycling", p: "n.", ph: "/ˈsaɪ.klɪŋ/", c: "騎單車" },
+        { w: "hiking", p: "n.", ph: "/ˈhaɪ.kɪŋ/", c: "健行" },
+        { w: "camping", p: "n.", ph: "/ˈkæm.pɪŋ/", c: "露營" },
+        { w: "fishing", p: "n.", ph: "/ˈfɪʃ.ɪŋ/", c: "釣魚" },
+        { w: "dancing", p: "n.", ph: "/ˈdɑːn.sɪŋ/", c: "跳舞" },
+        { w: "singing", p: "n.", ph: "/ˈsɪŋ.ɪŋ/", c: "唱歌" },
+        { w: "painting", p: "n.", ph: "/ˈpeɪn.tɪŋ/", c: "繪畫" },
+        { w: "drawing", p: "n.", ph: "/ˈdrɔː.ɪŋ/", c: "素描" },
+        { w: "reading", p: "n.", ph: "/ˈriː.dɪŋ/", c: "閱讀" },
+        { w: "photography", p: "n.", ph: "/fəˈtɒɡ.rə.fi/", c: "攝影" },
+        { w: "traveling", p: "n.", ph: "/ˈtræv.əl.ɪŋ/", c: "旅遊" },
+        { w: "shopping", p: "n.", ph: "/ˈʃɒp.ɪŋ/", c: "購物" },
+        { w: "party", p: "n.", ph: "/ˈpɑː.ti/", c: "派對" },
+        { w: "festival", p: "n.", ph: "/ˈfes.tɪ.vəl/", c: "節慶" },
+        { w: "carnival", p: "n.", ph: "/ˈkɑː.nɪ.vəl/", c: "嘉年華" },
+        { w: "amusementpark", p: "n.", ph: "/əˈmjuːz.mənt.pɑːk/", c: "遊樂園" },
+        { w: "zoo", p: "n.", ph: "/zuː/", c: "動物園" },
+        { w: "museum", p: "n.", ph: "/mjuːˈziː.əm/", c: "博物館" },
+        { w: "aquarium", p: "n.", ph: "/əˈkweə.ri.əm/", c: "水族館" },
+        { w: "park", p: "n.", ph: "/pɑːk/", c: "公園" },
+        { w: "beach", p: "n.", ph: "/biːtʃ/", c: "海灘" },
+        { w: "resort", p: "n.", ph: "/rɪˈzɔːt/", c: "渡假村" },
+        { w: "hotel", p: "n.", ph: "/həʊˈtel/", c: "飯店" },
+        { w: "guitar", p: "n.", ph: "/ɡɪˈtɑːr/", c: "吉他" },
+        { w: "piano", p: "n.", ph: "/piˈæn.əʊ/", c: "鋼琴" },
+        { w: "violin", p: "n.", ph: "/ˌvaɪəˈlɪn/", c: "小提琴" },
+        { w: "drums", p: "n.", ph: "/drʌmz/", c: "爵士鼓" }
+      ],
+      verbs: [
+        { w: "practice", p: "v.", ph: "/ˈpræk.tɪs/", c: "練習" },
+        { w: "remember", p: "v.", ph: "/rɪˈmem.bər/", c: "記得" },
+        { w: "understand", p: "v.", ph: "/ˌʌn.dəˈstænd/", c: "理解" },
+        { w: "create", p: "v.", ph: "/kriːˈeɪt/", c: "創造" },
+        { w: "improve", p: "v.", ph: "/ɪmˈpruːv/", c: "改善/進步" },
+        { w: "accept", p: "v.", ph: "/əkˈsept/", c: "接受" },
+        { w: "achieve", p: "v.", ph: "/əˈtʃiːv/", c: "達成" },
+        { w: "action", p: "v.", ph: "/ˈæk.ʃən/", c: "行動" },
+        { w: "admire", p: "v.", ph: "/ədˈmaɪər/", c: "欽佩" },
+        { w: "advise", p: "v.", ph: "/ədˈvaɪz/", c: "建議" },
+        { w: "afford", p: "v.", ph: "/əˈfɔːd/", c: "負擔得起" },
+        { w: "agree", p: "v.", ph: "/əˈɡriː/", c: "同意" },
+        { w: "allow", p: "v.", ph: "/əˈlaʊ/", c: "允許" },
+        { w: "announce", p: "v.", ph: "/əˈnaʊns/", c: "宣告" },
+        { w: "apologize", p: "v.", ph: "/əˈpɒl.ə.dʒaɪz/", c: "道歉" },
+        { w: "appear", p: "v.", ph: "/əˈpɪər/", c: "出現" },
+        { w: "apply", p: "v.", ph: "/əˈplaɪ/", c: "申請/應用" },
+        { w: "appreciate", p: "v.", ph: "/əˈpriː.ʃi.eɪt/", c: "欣賞/感謝" },
+        { w: "arrange", p: "v.", ph: "/əˈreɪndʒ/", c: "安排" },
+        { w: "arrive", p: "v.", ph: "/əˈraɪv/", c: "到達" },
+        { w: "assume", p: "v.", ph: "/əˈsjuːm/", c: "假設" },
+        { w: "attend", p: "v.", ph: "/əˈtend/", c: "參加" },
+        { w: "attract", p: "v.", ph: "/əˈtrækt/", c: "吸引" },
+        { w: "avoid", p: "v.", ph: "/əˈvɔɪd/", c: "避免" },
+        { w: "become", p: "v.", ph: "/bɪˈkʌm/", c: "變成" },
+        { w: "begin", p: "v.", ph: "/bɪˈɡɪn/", c: "開始" },
+        { w: "believe", p: "v.", ph: "/bɪˈliːv/", c: "相信" },
+        { w: "belong", p: "v.", ph: "/bɪˈlɒŋ/", c: "屬於" },
+        { w: "borrow", p: "v.", ph: "/ˈbɒr.əʊ/", c: "借入" },
+        { w: "cancel", p: "v.", ph: "/ˈkæn.səl/", c: "取消" },
+        { w: "change", p: "v.", ph: "/tʃeɪndʒ/", c: "改變" },
+        { w: "choose", p: "v.", ph: "/tʃuːz/", c: "選擇" },
+        { w: "collect", p: "v.", ph: "/kəˈlekt/", c: "收集" },
+        { w: "compare", p: "v.", ph: "/kəmˈpeər/", c: "比較" },
+        { w: "complain", p: "v.", ph: "/kəmˈpleɪn/", c: "抱怨" },
+        { w: "complete", p: "v.", ph: "/kəmˈpliːt/", c: "完成" },
+        { w: "confirm", p: "v.", ph: "/kənˈfɜːm/", c: "確認" },
+        { w: "connect", p: "v.", ph: "/kəˈnekt/", c: "連接" },
+        { w: "consider", p: "v.", ph: "/kənˈsɪd.ər/", c: "考慮" },
+        { w: "continue", p: "v.", ph: "/kənˈtɪn.juː/", c: "繼續" },
+        { w: "control", p: "v.", ph: "/kənˈtrəʊl/", c: "控制" },
+        { w: "decide", p: "v.", ph: "/dɪˈsaɪd/", c: "決定" },
+        { w: "deliver", p: "v.", ph: "/dɪˈlɪv.ər/", c: "遞送" },
+        { w: "describe", p: "v.", ph: "/dɪˈskraɪb/", c: "描述" },
+        { w: "destroy", p: "v.", ph: "/dɪˈstrɔɪ/", c: "摧毀" },
+        { w: "develop", p: "v.", ph: "/dɪˈvel.əp/", c: "發展" },
+        { w: "discuss", p: "v.", ph: "/dɪˈskʌs/", c: "討論" },
+        { w: "explain", p: "v.", ph: "/ɪkˈspleɪn/", c: "解釋" },
+        { w: "forget", p: "v.", ph: "/fəˈɡet/", c: "忘記" },
+        { w: "promise", p: "v.", ph: "/ˈprɒm.ɪs/", c: "承諾" }
+      ],
+      adjectives: [
+        { w: "beautiful", p: "adj.", ph: "/ˈbjuː.tɪ.fəl/", c: "美麗的" },
+        { w: "important", p: "adj.", ph: "/ɪmˈpɔː.tənt/", c: "重要的" },
+        { w: "wonderful", p: "adj.", ph: "/ˈwʌn.də.fəl/", c: "美好的" },
+        { w: "difficult", p: "adj.", ph: "/ˈdɪf.ɪ.kəlt/", c: "困難的" },
+        { w: "accurate", p: "adj.", ph: "/ˈæk.jə.rət/", c: "精確的" },
+        { w: "active", p: "adj.", ph: "/ˈæk.tɪv/", c: "活躍的" },
+        { w: "amazing", p: "adj.", ph: "/əˈmeɪ.zɪŋ/", c: "令人驚嘆的" },
+        { w: "ancient", p: "adj.", ph: "/ˈeɪn.ʃənt/", c: "古老的" },
+        { w: "anxious", p: "adj.", ph: "/ˈæŋk.ʃəs/", c: "焦慮的" },
+        { w: "awesome", p: "adj.", ph: "/ˈɔː.səm/", c: "棒極了的" },
+        { w: "awful", p: "adj.", ph: "/ˈɔː.fəl/", c: "糟糕的" },
+        { w: "bitter", p: "adj.", ph: "/ˈbɪt.ər/", c: "苦的" },
+        { w: "bright", p: "adj.", ph: "/braɪt/", c: "明量的" },
+        { w: "brilliant", p: "adj.", ph: "/ˈbrɪl.jənt/", c: "出色的" },
+        { w: "careful", p: "adj.", ph: "/ˈkeə.fəl/", c: "小心謹慎的" },
+        { w: "careless", p: "adj.", ph: "/ˈkeə.ləs/", c: "粗心的" },
+        { w: "clever", p: "adj.", ph: "/ˈklev.ər/", c: "聰明的" },
+        { w: "comfortable", p: "adj.", ph: "/ˈkʌm.fə.tə.bəl/", c: "舒適的" },
+        { w: "common", p: "adj.", ph: "/ˈkɒm.ən/", c: "常見的/共同的" },
+        { w: "convenient", p: "adj.", ph: "/kənˈviː.ni.ənt/", c: "方便的" },
+        { w: "dangerous", p: "adj.", ph: "/ˈdeɪn.dʒər.əs/", c: "危險的" },
+        { w: "delightful", p: "adj.", ph: "/dɪˈlaɪt.fəl/", c: "令人愉快的" },
+        { w: "different", p: "adj.", ph: "/ˈdɪf.ər.ənt/", c: "不同的" },
+        { w: "excellent", p: "adj.", ph: "/ˈek.səl.ənt/", c: "優秀的" },
+        { w: "famous", p: "adj.", ph: "/ˈfeɪ.məs/", c: "著名的" },
+        { w: "fantastic", p: "adj.", ph: "/fænˈtæs.tɪk/", c: "極好的" },
+        { w: "friendly", p: "adj.", ph: "/ˈfrend.li/", c: "友善的" },
+        { w: "generous", p: "adj.", ph: "/ˈdʒen.ər.əs/", c: "大方的" },
+        { w: "glorious", p: "adj.", ph: "/ˈɡlɔː.ri.əs/", c: "光榮的" },
+        { w: "graceful", p: "adj.", ph: "/ˈɡreɪs.fəl/", c: "優雅的" },
+        { w: "healthful", p: "adj.", ph: "/ˈhelθ.fəl/", c: "有益健康的" },
+        { w: "helpful", p: "adj.", ph: "/ˈhelp.fəl/", c: "有幫助的" },
+        { w: "honest", p: "adj.", ph: "/ˈɒn.ɪst/", c: "誠實的" },
+        { w: "horrible", p: "adj.", ph: "/ˈhɒr.ə.bəl/", c: "可怕的" },
+        { w: "humorous", p: "adj.", ph: "/ˈhjuː.mə.rəs/", c: "幽默的" },
+        { w: "impossible", p: "adj.", ph: "/ɪmˈpɒs.ə.bəl/", c: "不可能的" },
+        { w: "innocent", p: "adj.", ph: "/ˈɪn.ə.sənt/", c: "無辜的" },
+        { w: "intelligent", p: "adj.", ph: "/ɪnˈtel.ɪ.dʒənt/", c: "聰明的" },
+        { w: "interesting", p: "adj.", ph: "/ˈɪn.tre.stɪŋ/", c: "有趣的" },
+        { w: "nervous", p: "adj.", ph: "/ˈnɜː.vəs/", c: "緊張的" },
+        { w: "patient", p: "adj.", ph: "/ˈpeɪ.ʃənt/", c: "有耐心的" },
+        { w: "perfect", p: "adj.", ph: "/ˈpɜː.fekt/", c: "完美的" },
+        { w: "pleasant", p: "adj.", ph: "/ˈplez.ənt/", c: "令人愉快的" },
+        { w: "polite", p: "adj.", ph: "/pəˈlaɪt/", c: "有禮貌的" },
+        { w: "popular", p: "adj.", ph: "/ˈpɒp.jə.lər/", c: "受歡迎的" },
+        { w: "possible", p: "adj.", ph: "/ˈpɒs.ə.bəl/", c: "可能的" },
+        { w: "precious", p: "adj.", ph: "/ˈpreʃ.əs/", c: "寶貴的" },
+        { w: "serious", p: "adj.", ph: "/ˈsɪə.ri.əs/", c: "嚴肅的/認真的" },
+        { w: "splendid", p: "adj.", ph: "/ˈsplen.dɪd/", c: "壯麗的/極好的" },
+        { w: "valuable", p: "adj.", ph: "/ˈvæl.jə.bəl/", c: "有價值的" }
+      ],
+      conjunctions: [
+        { w: "because", p: "conj.", ph: "/bɪˈkəz/", c: "因為" },
+        { w: "although", p: "conj.", ph: "/ɔːlˈðəʊ/", c: "雖然" },
+        { w: "however", p: "adv.", ph: "/haʊˈev.ər/", c: "然而" },
+        { w: "therefore", p: "adv.", ph: "/ˈðeə.fɔːr/", c: "因此" },
+        { w: "besides", p: "prep.", ph: "/bɪˈsaɪdz/", c: "此外" },
+        { w: "between", p: "prep.", ph: "/bɪˈtwiːn/", c: "在...之間" },
+        { w: "through", p: "prep.", ph: "/θruː/", c: "透過/穿過" },
+        { w: "without", p: "prep.", ph: "/wɪˈðaʊt/", c: "沒有" },
+        { w: "against", p: "prep.", ph: "/əˈɡenst/", c: "反對/靠著" },
+        { w: "furthermore", p: "adv.", ph: "/ˌfɜː.ðəˈmɔːr/", c: "此外/再者" },
+        { w: "meanwhile", p: "adv.", ph: "/ˈmiːn.waɪl/", c: "同時" },
+        { w: "otherwise", p: "adv.", ph: "/ˈʌð.ə.waɪz/", c: "否則" },
+        { w: "instead", p: "adv.", ph: "/ɪnˈsted/", c: "反而/替代" },
+        { w: "despite", p: "prep.", ph: "/dɪˈspaɪt/", c: "儘管" },
+        { w: "according", p: "prep.", ph: "/əˈkɔː.dɪŋ/", c: "根據" },
+        { w: "whenever", p: "conj.", ph: "/wenˈev.ər/", c: "每當" },
+        { w: "wherever", p: "conj.", ph: "/weərˈev.ər/", c: "無論何地" },
+        { w: "whatever", p: "conj.", ph: "/wɒtˈev.ər/", c: "無論什麼" },
+        { w: "whichever", p: "conj.", ph: "/wɪtʃˈev.ər/", c: "無論哪個" },
+        { w: "whoever", p: "conj.", ph: "/huːˈev.ər/", c: "無論是誰" },
+        { w: "unless", p: "conj.", ph: "/ənˈles/", c: "除非" },
+        { w: "whereas", p: "conj.", ph: "/weərˈæz/", c: "然而/鑑於" },
+        { w: "whether", p: "conj.", ph: "/ˈweð.ər/", c: "是否" },
+        { w: "beyond", p: "prep.", ph: "/biˈjɒnd/", c: "超越/在...之外" },
+        { w: "during", p: "prep.", ph: "/ˈdʒʊə.rɪŋ/", c: "在...期間" },
+        { w: "inside", p: "prep.", ph: "/ɪnˈsaɪd/", c: "在...裡面" },
+        { w: "outside", p: "prep.", ph: "/ˌaʊtˈsaɪd/", c: "在...外面" },
+        { w: "towards", p: "prep.", ph: "/təˈwɔːdz/", c: "朝向" },
+        { w: "underneath", p: "prep.", ph: "/ˌʌn.dəˈniːθ/", c: "在...底下" },
+        { w: "within", p: "prep.", ph: "/wɪˈðɪn/", c: "在...範圍之內" },
+        { w: "concerning", p: "prep.", ph: "/kənˈsɜː.nɪŋ/", c: "關於" },
+        { w: "regarding", p: "prep.", ph: "/rɪˈɡɑː.dɪŋ/", c: "關於" },
+        { w: "including", p: "prep.", ph: "/ɪnˈkluː.dɪŋ/", c: "包含" },
+        { w: "excluding", p: "prep.", ph: "/ɪkˈskluː.dɪŋ/", c: "不包含" },
+        { w: "following", p: "prep.", ph: "/ˈfɒl.əʊ.ɪŋ/", c: "在...之後" },
+        { w: "provided", p: "conj.", ph: "/prəˈvaɪ.dɪd/", c: "假使/只要" },
+        { w: "supposing", p: "conj.", ph: "/səˈpəʊ.zɪŋ/", c: "假設" },
+        { w: "nonetheless", p: "adv.", ph: "/ˌnʌn.ðəˈles/", c: "儘管如此" },
+        { w: "nevertheless", p: "adv.", ph: "/ˌnev.ə.ðəˈles/", c: "然而/不過" },
+        { w: "hence", p: "adv.", ph: "/hens/", c: "因此" },
+        { w: "thus", p: "adv.", ph: "/ðʌs/", c: "因此/從而" },
+        { w: "conversely", p: "adv.", ph: "/kənˈvɜːs.li/", c: "相反地" },
+        { w: "likewise", p: "adv.", ph: "/ˈlaɪk.waɪz/", c: "同樣地" },
+        { w: "similarly", p: "adv.", ph: "/ˈsɪm.ɪ.lə.li/", c: "相似地" },
+        { w: "namely", p: "adv.", ph: "/ˈneɪm.li/", c: "也就是說" },
+        { w: "specifically", p: "adv.", ph: "/spəˈsɪf.ɪ.kəl.i/", c: "具體來說" },
+        { w: "overall", p: "adv.", ph: "/ˌəʊ.vərˈɔːl/", c: "整體而言" },
+        { w: "eventually", p: "adv.", ph: "/ɪˈven.tʃu.ə.li/", c: "最終" },
+        { w: "ultimately", p: "adv.", ph: "/ˈʌl.tɪ.mət.li/", c: "終究" },
+        { w: "finally", p: "adv.", ph: "/ˈfaɪ.nəl.i/", c: "最後" }
+      ]
+    };
+
+    let currentCategory = 'food';
+    let currentWords = [];
+    let wordIndex = 0;
+    let letterIndex = 0;
+    let letterStartTime = 0;
+    let totalReactionTime = 0;
+    let totalLettersCount = 0;
+    let totalMistakes = 0;
+    let totalCorrectKeystrokes = 0;
+
+    const keyboardRows = [
+      ['q','w','e','r','t','y','u','i','o','p'],
+      ['a','s','d','f','g','h','j','k','l'],
+      ['z','x','c','v','b','n','m']
+    ];
+
+    function initKeyboard() {
+      keyboardRows.forEach((row, i) => {
+        const rowEl = document.getElementById(`row-${i+1}`);
+        if (!rowEl) return;
+        rowEl.innerHTML = '';
+        row.forEach(key => {
+          const keyEl = document.createElement('div');
+          keyEl.className = 'key';
+          keyEl.id = `key-${key}`;
+          keyEl.innerText = key.toUpperCase();
+          rowEl.appendChild(keyEl);
+        });
+      });
+    }
+
+    function switchScreen(targetScreenId) {
+      const screens = document.querySelectorAll('.screen');
+      screens.forEach(s => s.classList.remove('active'));
+      
+      const targetScreen = document.getElementById(targetScreenId);
+      if (targetScreen) {
+        targetScreen.classList.add('active');
+      }
+
+      if (targetScreenId === 'category-screen') {
+        const best = sessionStorage.getItem('best_reaction_time');
+        const bestEl = document.getElementById('best-score');
+        if (bestEl) {
+          bestEl.innerText = best ? `⚡ 本次最佳: ${best} ms/字` : '⚡ 本次最佳: -- ms/字';
+        }
+      }
+    }
+
+    function startCountdown(catKey) {
+      currentCategory = catKey;
+      const overlay = document.getElementById('countdown-overlay');
+      const numEl = document.getElementById('countdown-number');
+      overlay.style.display = 'flex';
+      let count = 3;
+      numEl.innerText = count;
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          numEl.innerText = count;
+        } else if (count === 0) {
+          numEl.innerText = 'GO!';
+        } else {
+          clearInterval(timer);
+          overlay.style.display = 'none';
+          startGame();
+        }
+      }, 600);
+    }
+
+    function startGame() {
+      switchScreen('game-screen');
+
+      const labels = {
+        food: '食', clothing: '衣', housing: '住', transport: '行',
+        education: '育', entertainment: '樂', verbs: '常用動詞',
+        adjectives: '形容詞', conjunctions: '連接詞與介系詞'
+      };
+      document.getElementById('category-label').innerText = labels[currentCategory] || '主題';
+
+      // 隨機抽選 10 個單字
+      const pool = VOCABULARY[currentCategory] || VOCABULARY['food'];
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      currentWords = shuffled.slice(0, 10);
+
+      wordIndex = 0;
+      totalReactionTime = 0;
+      totalLettersCount = 0;
+      totalMistakes = 0;
+      totalCorrectKeystrokes = 0;
+
+      loadWord();
+    }
+
+    function loadWord() {
+      if (wordIndex >= currentWords.length) {
+        showResults();
+        return;
+      }
+
+      letterIndex = 0;
+      const wordObj = currentWords[wordIndex];
+      
+      document.getElementById('word-count').innerText = `${wordIndex + 1}/10`;
+      document.getElementById('progress-bar').style.width = `${((wordIndex + 1) / 10) * 100}%`;
+
+      const lettersEl = document.getElementById('word-letters');
+      lettersEl.innerHTML = '';
+      for (let i = 0; i < wordObj.w.length; i++) {
+        const span = document.createElement('span');
+        span.className = `letter ${i === 0 ? 'current' : ''}`;
+        span.innerText = wordObj.w[i];
+        lettersEl.appendChild(span);
+      }
+
+      document.getElementById('pos-tag').innerText = wordObj.p;
+      document.getElementById('phonetic').innerText = wordObj.ph;
+      const hint = document.getElementById('chinese-hint');
+      hint.innerText = wordObj.c;
+      hint.classList.remove('revealed');
+
+      updateKeyHighlight();
+      letterStartTime = Date.now();
+    }
+
+    function updateKeyHighlight() {
+      document.querySelectorAll('.key').forEach(k => k.classList.remove('next'));
+      if (wordIndex < currentWords.length) {
+        const currentLetter = currentWords[wordIndex].w[letterIndex];
+        const keyEl = document.getElementById(`key-${currentLetter}`);
+        if (keyEl) keyEl.classList.add('next');
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      const gameScreen = document.getElementById('game-screen');
+      if (!gameScreen.classList.contains('active')) return;
+
+      const key = e.key.toLowerCase();
+      if (!/^[a-z]$/.test(key)) return;
+
+      const currentWordObj = currentWords[wordIndex];
+      const targetLetter = currentWordObj.w[letterIndex];
+
+      const keyEl = document.getElementById(`key-${key}`);
+      if (keyEl) {
+        keyEl.classList.add('active');
+        setTimeout(() => keyEl.classList.remove('active'), 150);
+      }
+
+      if (key === targetLetter) {
+        playSound('correct');
+        const reaction = Date.now() - letterStartTime;
+        totalReactionTime += reaction;
+        totalLettersCount++;
+        totalCorrectKeystrokes++;
+
+        const letterSpans = document.querySelectorAll('.letter');
+        letterSpans[letterIndex].className = 'letter typed';
+
+        letterIndex++;
+
+        if (letterIndex >= currentWordObj.w.length) {
+          playSound('wordSuccess');
+          document.getElementById('chinese-hint').classList.add('revealed');
+          setTimeout(() => {
+            wordIndex++;
+            loadWord();
+          }, 300);
+        } else {
+          letterSpans[letterIndex].className = 'letter current';
+          updateKeyHighlight();
+          letterStartTime = Date.now();
+        }
+      } else {
+        playSound('error');
+        totalMistakes++;
+        const letterSpans = document.querySelectorAll('.letter');
+        if (letterSpans[letterIndex]) {
+          letterSpans[letterIndex].classList.add('error');
+          setTimeout(() => letterSpans[letterIndex].classList.remove('error'), 300);
+        }
+      }
+    });
+
+    function showResults() {
+      switchScreen('results-screen');
+
+      const avgTime = Math.round(totalReactionTime / (totalLettersCount || 1));
+      const accuracy = Math.round((totalCorrectKeystrokes / ((totalCorrectKeystrokes + totalMistakes) || 1)) * 100);
+
+      document.getElementById('stat-avg-time').innerText = `${avgTime} ms`;
+      document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+      document.getElementById('stat-total-time').innerText = `${(totalReactionTime / 1000).toFixed(1)}s`;
+
+      const currentBest = sessionStorage.getItem('best_reaction_time');
+      if (!currentBest || avgTime < parseInt(currentBest)) {
+        sessionStorage.setItem('best_reaction_time', avgTime);
+        document.getElementById('new-record-badge').style.display = 'block';
+      } else {
+        document.getElementById('new-record-badge').style.display = 'none';
+      }
+
+      const reviewList = document.getElementById('review-list');
+      reviewList.innerHTML = '';
+      currentWords.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'review-item';
+        item.innerHTML = `
+          <div><strong>${w.w}</strong> <span style="color:var(--text-muted); font-size:0.85rem;">${w.ph}</span></div>
+          <div><span class="pos-tag">${w.p}</span> ${w.c}</div>
+        `;
+        reviewList.appendChild(item);
+      });
+    }
+
+    function restartSameCategory() {
+      startCountdown(currentCategory);
+    }
+
+    window.onload = function() {
+      initKeyboard();
+      
+      const startBtn = document.getElementById('start-btn');
+      if (startBtn) {
+        startBtn.addEventListener('click', function() {
+          switchScreen('category-screen');
+        });
+      }
+    };
+  </script>
+</body>
+</html>
